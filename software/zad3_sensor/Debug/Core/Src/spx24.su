@@ -1,0 +1,2 @@
+../Core/Src/spx24.c:17:20:spx_measure	16	static
+../Core/Src/spx24.c:51:7:convert_adc_to_soil_parameter	24	static
