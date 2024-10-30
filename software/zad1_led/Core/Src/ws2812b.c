@@ -30,7 +30,7 @@
 static uint8_t led_buffer[RESET_LEN + 24 * LED_N + 1];
 
 
-//set values in array at position "pos"
+//set values in led_buffer at position "pos"
 static void set_byte(uint32_t pos, uint8_t value)
 {
   int i;

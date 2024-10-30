@@ -68,6 +68,7 @@ void SystemClock_Config(void);
 
 bool blink_button_flag = 0;
 
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if (GPIO_Pin == BLINK_BUTTON_Pin) {
@@ -136,36 +137,40 @@ int main(void)
   {
 	  //start blinking after button press
 	  if(blink_button_flag){
-		  num_blinks_left = NUM_BLUE_BLINKS * 2;  // *2 because state change are counted
-		  blue_led_prev_blink = 0;
+		  num_blinks_left = NUM_BLUE_BLINKS * 2 - 1;  // *2 because state change are counted
+		  blue_val = 100;
+		  blue_led_prev_blink = HAL_GetTick();
 		  blink_button_flag = 0;
 	  }
 
 	  // blue led blink
 	  if(num_blinks_left && (HAL_GetTick() - blue_led_prev_blink) > BLUE_LED_BLINK_PERIOD/2){
+		  //toogle blue led state
 		  if(blue_val) blue_val = 0;
 		  else blue_val = 100;
-		  ws2812b_set_color(0, red_val, green_val, blue_val);
-		  ws2812b_update();
-		  num_blinks_left -= 1;
+		  num_blinks_left --;
 		  blue_led_prev_blink = HAL_GetTick();
 	  }
 
 	  // control red, green led
 	  if((HAL_GetTick() - prev_time) > BLINK_PERIOD / RESOLUTION){
-		  if(blink_counter <= BLINK_PERIOD){
-			  if(blink_counter > BLINK_PERIOD/2) red_val = 100;
+		  if(blink_counter < BLINK_PERIOD){
+			  if(blink_counter < BLINK_PERIOD/2) red_val = 100;
 			  else red_val = 0;
-			  green_val = ((blink_counter * 100)/BLINK_PERIOD);
+			  green_val = ((blink_counter * 100)/(BLINK_PERIOD - 1));
 			  blink_counter += BLINK_PERIOD / RESOLUTION;
 		  }
 		  else{
 			  blink_counter = 0;
 		  }
-		  ws2812b_set_color(0, red_val, green_val, blue_val);
-		  ws2812b_update();
+
 		  prev_time = HAL_GetTick();
 	  }
+
+	  //send data to led
+	  ws2812b_set_color(0, red_val, green_val, blue_val);
+	  ws2812b_update();
+
 
 
     /* USER CODE END WHILE */
