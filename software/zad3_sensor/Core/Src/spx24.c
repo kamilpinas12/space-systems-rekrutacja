@@ -20,6 +20,7 @@ spx_status_typedef spx_measure(soil_parameter_typedef soil_parameter){
 	spx_data_ready = 0;
 	spx_busy = 1;
 
+	//set CTRL0 and CTRL1 depends on soil parameter
 	switch(soil_parameter){
 		case moisture:
 			HAL_GPIO_WritePin(CTRL0_GPIO_Port, CTRL0_Pin, GPIO_PIN_RESET);
@@ -35,7 +36,7 @@ spx_status_typedef spx_measure(soil_parameter_typedef soil_parameter){
 			break;
 	}
 
-	// set TRG to high then start timer to reset it after 13 ms (min time = 10ms)
+	// set TRG to high then start timer then reset TRG in timer interrupt after 13 ms (min time = 10ms)
 	HAL_GPIO_WritePin(TRG_GPIO_Port, TRG_Pin, GPIO_PIN_SET);
 	__HAL_TIM_SET_COUNTER(&htim15, 0);
 	__HAL_TIM_CLEAR_IT(&htim15 ,TIM_IT_UPDATE);

@@ -68,6 +68,7 @@ volatile int spx_adc_val;
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
+	// set spx_data_ready flag to 1 when adc finishes measuring
 	if(hadc == &hadc1){
 		spx_adc_val = HAL_ADC_GetValue(&hadc1);
 		spx_data_ready = 1;
@@ -75,16 +76,20 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 }
 
+
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  if (GPIO_Pin == DR_Pin) {
-	  HAL_ADC_Start_IT(&hadc1);
-  }
+	// start ADC when spx data is ready (rising edge on DR pin)
+	if (GPIO_Pin == DR_Pin) {
+		HAL_ADC_Start_IT(&hadc1);
+	}
 }
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
+	//after 13ms stop the timer and reset the spx TRG pin
 	if(htim == &htim15){
 		HAL_GPIO_WritePin(TRG_GPIO_Port, TRG_Pin, GPIO_PIN_RESET);
 		HAL_TIM_Base_Stop_IT(&htim15);
@@ -133,17 +138,21 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
 
-	//example
   float result;
-
-  while(spx_measure(temperature) == spx_busy);
-
-  if(spx_data_ready) result = convert_adc_to_soil_parameter(temperature, spx_adc_val);
-
 
 
   while (1)
   {
+	  // if spx isn't busy start measurement
+	  if(!spx_busy){
+		  spx_measure(temperature);
+	  }
+
+	  //get adc value if spx_data_ready flag is 1
+	  if(spx_data_ready){
+		  result = convert_adc_to_soil_parameter(temperature, spx_adc_val);
+		  spx_data_ready = 0;
+	  }
 
 
     /* USER CODE END WHILE */

@@ -39,8 +39,6 @@
 
 
 
-
-
 typedef enum{
 	spx24_busy = 0,
 	spx24_ok
