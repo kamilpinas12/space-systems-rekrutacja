@@ -8,11 +8,27 @@
 
 #include "usart.h"
 
-
+#include<stdio.h>
 #include"uart_lib.h"
 #include<stdlib.h>
 #include<string.h>
 #include<stdbool.h>
+
+
+/*
+ *  komenda[=arg1;arg2;...]\r\n
+ *  |   ^  |
+ *      |
+ * function code
+ *
+ *
+ * how to add new function?
+ * add function code and num_args to command list
+ * add if statement to callback function
+ * callback function receives char[]
+ *
+ */
+
 
 
 command_typedef command_list[] = {
@@ -29,12 +45,28 @@ static uint32_t command_size;
 
 
 
+int __io_putchar(int ch)
+{
+    if (ch == '\n') {
+        uint8_t ch2 = '\r';
+        HAL_UART_Transmit(&huart1, &ch2, 1, HAL_MAX_DELAY);
+    }
+
+    HAL_UART_Transmit(&huart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+    return 1;
+}
+
+
+
+// add character form UART to command buffer if character is '\n'
 
 void command_buffer_append(uint8_t value){
 	if (value == '\n') {
 		if (command_size > 0) {
 			command_buffer[command_size] = '\0';
-			parse_command();
+			if(parse_command() == 0){
+				printf("error\n");
+			}
 			command_size = 0;
 		}
 	}
@@ -48,12 +80,24 @@ void command_buffer_append(uint8_t value){
 
 
 
+// return 1 if command is found
+
 int parse_command(){
     char function_code[FUNCTION_CODE_MAX_LENGHT];
     char args[MAX_NUM_ARGS][ARG_MAX_LENGHT];
 
+    // get function code form command_buffer
     int function_code_idx = 0;
     for(int i = 0; i< command_size && i < FUNCTION_CODE_MAX_LENGHT; i++){
+    	if(command_buffer[i] == '\r'){
+    		strncpy(function_code, command_buffer, i);
+    		function_code[i] = '\0';
+    		if(strcmp(function_code, "help")){
+    			help();
+    			return 1;
+    		}
+    	}
+
         if(command_buffer[i] == '['){
             function_code_idx = i;
             strncpy(function_code, command_buffer, function_code_idx);
@@ -67,6 +111,7 @@ int parse_command(){
 
     bool close_bracket = 0;
 
+    //get arguments from command buffer
     for(int i = function_code_idx + 1; i < command_size; i++){
         if(i == function_code_idx + 1){
             if(command_buffer[i] != '='){
@@ -91,6 +136,7 @@ int parse_command(){
         }
     }
 
+    // if there is no close bracket
     if(!close_bracket) return 0;
 
     return callback(function_code, args, arg_idx + 1);
@@ -116,6 +162,8 @@ int callback(char* function_code, char args[MAX_NUM_ARGS][ARG_MAX_LENGHT], int n
     if(!is_command_found) return 0;
 
 
+    //  Add if statement to handle command
+
     if(strcmp(function_code, "komenda") == 0){
 
         // do something
@@ -135,4 +183,13 @@ int callback(char* function_code, char args[MAX_NUM_ARGS][ARG_MAX_LENGHT], int n
 
     return 1;
 }
+
+//send avaible commands
+void help(){
+	for(int i = 0; i < command_list_size; i++){
+		printf("%s\n", command_list[i].function_code);
+	}
+}
+
+
 

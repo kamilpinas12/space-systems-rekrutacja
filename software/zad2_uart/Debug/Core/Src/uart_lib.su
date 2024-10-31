@@ -1,3 +1,5 @@
-../Core/Src/uart_lib.c:33:6:command_buffer_append	16	static
-../Core/Src/uart_lib.c:51:5:parse_command	104	static
-../Core/Src/uart_lib.c:102:5:callback	64	static
+../Core/Src/uart_lib.c:48:5:__io_putchar	24	static
+../Core/Src/uart_lib.c:63:6:command_buffer_append	16	static
+../Core/Src/uart_lib.c:85:5:parse_command	104	static
+../Core/Src/uart_lib.c:148:5:callback	64	static
+../Core/Src/uart_lib.c:188:6:help	16	static

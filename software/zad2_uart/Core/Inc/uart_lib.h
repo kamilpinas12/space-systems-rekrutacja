@@ -20,7 +20,7 @@
 void command_buffer_append(uint8_t value);
 int parse_command(void);
 int callback(char* function_code, char args[MAX_NUM_ARGS][ARG_MAX_LENGHT], int num_args);
-
+void help();
 
 
 typedef struct {
